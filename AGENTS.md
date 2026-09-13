@@ -76,13 +76,24 @@ Wenn die Aufgabe lautet, einen bestimmten Fehler zu beheben oder ein einzelnes V
 
 Refactoring ist nur zulässig, wenn es für die angeforderte Änderung erforderlich ist oder ausdrücklich beauftragt wurde.
 
-## 6. Branch-Strategie
+## 6. Branch- und Test-Strategie
 
-Kleine, klar begrenzte Bugfixes und Wartungsänderungen können direkt im vorgesehenen Arbeitsbranch umgesetzt werden.
+Der Test-Workflow ist verbindlich:
 
-**Größere Features, Experimente und umfangreiche UI-Änderungen gehören auf einen eigenen Feature-Branch.**
+- **Größere Features und riskante Fixes immer auf einem eigenen Test-/Feature-Branch umsetzen.**
+- `main` bleibt unangetastet, bis der Nutzer den Test ausdrücklich freigegeben hat.
+- Sagt der Nutzer **„lass uns das testen“**, bedeutet das: Änderung implementieren, App-Version erhöhen und einen Test-Build erzeugen.
+- Sagt der Nutzer **„nicht gleich coden“**, **„erst besprechen“** oder **„zeig mir erst, ob du es verstanden hast“**, darf noch nichts implementiert werden. Zuerst wird ausschließlich analysiert bzw. die geplante Änderung beschrieben.
+- Bei Bugs wird ausschließlich der **kleinstmögliche Fix** umgesetzt. Keine Nebenbaustellen, kein spontanes Refactoring und keine nicht beauftragten Verbesserungen.
+- Testfeedback wird auf **demselben Test-Branch** eingearbeitet. Für Nachbesserungen innerhalb desselben Tests keinen neuen Branch beginnen.
+- Erst nach einem ausdrücklichen **„passt so“** oder **„freigegeben“** darf die getestete Änderung nach `main` übernommen werden.
+- Vor dem Merge müssen alle Regressionen beseitigt sein, die während dieses Tests entdeckt und durch die Änderung verursacht wurden.
+- Bei ausgelieferten Codeänderungen wird die **App-Version erhöht**. Reine Dokumentationsänderungen erhalten keinen Versions-Bump.
+- Nach jeder Änderung werden die betroffene Funktion und kritische bestehende Funktionen, die durch die Änderung berührt werden könnten, gezielt gegengeprüft.
+- Änderungen dürfen nicht eigenmächtig „verbessert“, erweitert oder umgestaltet werden, wenn dies nicht Bestandteil des Auftrags ist.
+- Bei UI-Arbeiten gilt: **Ein vom Nutzer freigegebener Mock hat Vorrang vor eigener Interpretation.** Der Mock ist so exakt wie technisch sinnvoll umzusetzen; Abweichungen werden nicht eigenmächtig eingeführt.
 
-Ein experimentelles Feature wird erst nach Prüfung in `main` übernommen. Wird es verworfen, darf `main` dadurch nicht mit Restcode, deaktivierten Komponenten oder ungenutzten Abhängigkeiten belastet werden.
+Experimentelle Änderungen, die verworfen werden, dürfen `main` nicht mit Restcode, deaktivierten Komponenten oder ungenutzten Abhängigkeiten belasten.
 
 ## 7. Commits
 
@@ -112,9 +123,11 @@ Vor Abschluss einer Änderung mindestens prüfen:
 - Navigation und Zurück-Verhalten bleiben konsistent.
 - Zahlen und Geldbeträge werden korrekt formatiert.
 - Finanzberechnungen sind deterministisch und nachvollziehbar.
-- UI entspricht `docs/UI_GUIDELINES.md`.
+- UI entspricht `docs/UI_GUIDELINES.md` bzw. einem für die konkrete Änderung freigegebenen Mock.
 
 Wenn automatisierte Tests für die geänderte Logik existieren, müssen sie ausgeführt werden. Für neue relevante Finanzlogik sollen nach Möglichkeit Tests ergänzt werden.
+
+Ein Test gilt nicht allein deshalb als abgeschlossen, weil die neue Funktion funktioniert. Die während des Tests festgestellten Regressionen müssen vor einer Freigabe ebenfalls behoben und erneut geprüft sein.
 
 ## 9. Keine erfundenen Anforderungen
 
@@ -140,7 +153,7 @@ Bei konkurrierenden Möglichkeiten gilt folgende Reihenfolge:
 
 1. Korrekte Finanzlogik
 2. Verständlichkeit für den Nutzer
-3. Bestehende UI-Guidelines
+3. Bestehende UI-Guidelines / freigegebener Mock
 4. Konsistentes natives App-Verhalten
 5. Einfacher, wartbarer Code
 6. Zusätzliche Eleganz oder technische Optimierung
